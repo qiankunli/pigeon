@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by bert on 16/9/7.
  */
-public class PacketEncoder extends MessageToByteEncoder<Packet> {
+public abstract class PacketEncoder extends MessageToByteEncoder<Packet> {
 
-    private RecordEncoder recordEncoder;
+    protected RecordEncoder recordEncoder;
 
     public PacketEncoder(RecordEncoder recordEncoder) {
         this.recordEncoder = recordEncoder;
@@ -32,7 +32,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
             /*
                 先将数据写入到buf中
              */
-            packet.encode(buf, recordEncoder);
+            encode(packet, buf);
 
             /*
                 将buf中的数据写入out中 frameSize + frameData
@@ -44,4 +44,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
             ReferenceCountUtil.release(buf);
         }
     }
+
+    abstract void encode(Packet packet, ByteBuf out);
 }

@@ -1,6 +1,6 @@
 package org.lqk.pigeon.client;
 
-import org.lqk.pigeon.codec.RecordSerializer;
+import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.proto.Packet;
 
 import java.io.IOException;
@@ -11,10 +11,10 @@ import java.net.InetSocketAddress;
  */
 public abstract class ClientCnxnSocket {
 
-    protected RecordSerializer recordSerializer;
+    protected ClientRecordSerializer clientRecordSerializer;
 
-    public ClientCnxnSocket(RecordSerializer recordSerializer) {
-        this.recordSerializer = recordSerializer;
+    public ClientCnxnSocket(ClientRecordSerializer clientRecordSerializer) {
+        this.clientRecordSerializer = clientRecordSerializer;
     }
 
     abstract boolean isConnected();

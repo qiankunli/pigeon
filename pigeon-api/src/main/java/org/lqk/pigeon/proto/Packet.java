@@ -8,6 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by bert on 2017/3/19.
+ * <p>
+ * id,packetType 是为了确保连接可用所需要的
+ * requestHeader,replyHeader,request,response 则可以根据框架需要自定义扩展
  */
 public class Packet {
     private int id;
@@ -85,16 +88,29 @@ public class Packet {
         this.callback = callback;
     }
 
-    public void encode(ByteBuf out, RecordEncoder recordEncoder) {
+    public void encodeRequest(ByteBuf out, RecordEncoder requestEncoder) {
         out.writeInt(id);
         requestHeader.encode(out);
-        recordEncoder.encode(request, out);
+        requestEncoder.encode(request, out);
     }
 
-    public void decode(ByteBuf in, RecordDecoder recordDecoder) {
+    public void encodeResponse(ByteBuf out, RecordEncoder responseEncoder) {
+        out.writeInt(id);
+        replyHeader.encode(out);
+        responseEncoder.encode(response, out);
+    }
+
+    public void decodeResponse(ByteBuf in, RecordDecoder responseDecoder) {
         this.id = in.readInt();
         this.replyHeader = new ReplyHeader();
         replyHeader.decode(in);
-        this.response = recordDecoder.decode(in);
+        this.response = responseDecoder.decode(in);
+    }
+
+    public void decodeRequest(ByteBuf in, RecordDecoder requestDecoder) {
+        this.id = in.readInt();
+        this.requestHeader = new RequestHeader();
+        requestHeader.decode(in);
+        this.request = requestDecoder.decode(in);
     }
 }

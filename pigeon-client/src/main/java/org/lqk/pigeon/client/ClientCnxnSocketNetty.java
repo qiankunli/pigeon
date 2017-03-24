@@ -7,11 +7,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.lqk.pigeon.codec.RecordDecoder;
-import org.lqk.pigeon.codec.RecordEncoder;
-import org.lqk.pigeon.codec.RecordSerializer;
-import org.lqk.pigeon.common.codec.PacketDecoder;
-import org.lqk.pigeon.common.codec.PacketEncoder;
+import org.lqk.pigeon.codec.ClientRecordSerializer;
+import org.lqk.pigeon.common.codec.RequestPacketEncoder;
+import org.lqk.pigeon.common.codec.ResponsePacketDecoder;
 import org.lqk.pigeon.proto.Packet;
 import org.lqk.pigeon.proto.ReplyHeader;
 
@@ -41,8 +39,8 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     final ConcurrentMap<Integer, Packet> callbackMap = new ConcurrentHashMap<Integer, Packet>(
             1000);
 
-    public ClientCnxnSocketNetty(RecordSerializer recordSerializer){
-        super(recordSerializer);
+    public ClientCnxnSocketNetty(ClientRecordSerializer clientRecordSerializer){
+        super(clientRecordSerializer);
     }
 
 
@@ -96,8 +94,8 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
     private class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
         protected void initChannel(SocketChannel arg0) throws Exception {
-            arg0.pipeline().addLast(new PacketEncoder(recordSerializer.getRecordEncoder()))
-                    .addLast(new PacketDecoder(recordSerializer.getRecordDecoder()))
+            arg0.pipeline().addLast(new RequestPacketEncoder(clientRecordSerializer.getRecordEncoder()))
+                    .addLast(new ResponsePacketDecoder(clientRecordSerializer.getRecordDecoder()))
                     .addLast(new PacketHandler());
         }
     }

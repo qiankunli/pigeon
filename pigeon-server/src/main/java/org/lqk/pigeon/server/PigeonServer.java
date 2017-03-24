@@ -6,11 +6,11 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.lqk.pigeon.codec.RecordSerializer;
+import org.lqk.pigeon.codec.ServerRecordSerializer;
 import org.lqk.pigeon.common.PigeonException;
-import org.lqk.pigeon.common.codec.PacketDecoder;
-import org.lqk.pigeon.common.codec.PacketEncoder;
+import org.lqk.pigeon.common.codec.*;
 import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.proto.PacketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +31,15 @@ public class PigeonServer {
     private EventLoopGroup acceptorGroup;
     private EventLoopGroup ioGroup;
 
-    private RecordSerializer recordSerializer;
+    private ServerRecordSerializer serverRecordSerializer;
 
     private static Logger log = LoggerFactory.getLogger(PigeonServer.class);
 
 
-    public PigeonServer(int port, PacketHandler packetHandler, RecordSerializer recordSerializer) {
+    public PigeonServer(int port, PacketHandler packetHandler, ServerRecordSerializer serverRecordSerializer) {
         this.port = port;
         this.packetHandler = packetHandler;
-        this.recordSerializer = recordSerializer;
+        this.serverRecordSerializer = serverRecordSerializer;
         acceptorGroup = new NioEventLoopGroup(1);
         ioGroup = new NioEventLoopGroup(2);
     }
@@ -49,7 +49,8 @@ public class PigeonServer {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline channelPipeline = ch.pipeline();
-                channelPipeline.addLast(new PacketEncoder(recordSerializer.getRecordEncoder())).addLast(new PacketDecoder(recordSerializer.getRecordDecoder()))
+                channelPipeline.addLast(new RequestPacketEncoder(serverRecordSerializer.getRecordEncoder()))
+                        .addLast(new RequestPacketDecoder(serverRecordSerializer.getRecordDecoder()))
                         .addLast(new NettyServerChannelHandler(packetHandler));
             }
         };

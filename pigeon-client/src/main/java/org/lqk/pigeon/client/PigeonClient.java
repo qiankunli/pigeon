@@ -1,9 +1,8 @@
 package org.lqk.pigeon.client;
 
-import org.lqk.pigeon.codec.RecordSerializer;
+import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.PigeonException;
 import org.lqk.pigeon.proto.Record;
-import org.lqk.pigeon.proto.SerializableRecord;
 import org.lqk.pigeon.proto.ReplyHeader;
 import org.lqk.pigeon.proto.RequestHeader;
 import org.slf4j.Logger;
@@ -20,8 +19,8 @@ public class PigeonClient {
 
     private static Logger log = LoggerFactory.getLogger(PigeonClient.class);
 
-    public PigeonClient(String ip, int port, RecordSerializer recordSerializer) {
-        clientCnxn = new ClientCnxn(ip, port, recordSerializer);
+    public PigeonClient(String ip, int port, ClientRecordSerializer clientRecordSerializer) {
+        clientCnxn = new ClientCnxn(ip, port, clientRecordSerializer);
     }
 
     public void start() throws IOException, InterruptedException {

@@ -15,9 +15,9 @@ import java.util.List;
  * 此处没有用LengthFieldBasedFrameDecoder的原因是,先根据
  * Created by bert on 16/9/7.
  */
-public class PacketDecoder extends ByteToMessageDecoder {
+public abstract class PacketDecoder extends ByteToMessageDecoder {
 
-    private RecordDecoder recordDecoder;
+    protected RecordDecoder recordDecoder;
 
     public PacketDecoder(RecordDecoder recordDecoder) {
         this.recordDecoder = recordDecoder;
@@ -60,7 +60,7 @@ public class PacketDecoder extends ByteToMessageDecoder {
         buf.writeBytes(in, frameSize);
         try {
             Packet packet = new Packet();
-            packet.decode(buf, recordDecoder);
+            decode(packet, buf);
             out.add(packet);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
@@ -69,6 +69,8 @@ public class PacketDecoder extends ByteToMessageDecoder {
             buf.release();
         }
     }
+
+    abstract void decode(Packet packet, ByteBuf in);
 
 
     @Override

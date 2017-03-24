@@ -1,4 +1,4 @@
-package org.lqk.pigeon.server;
+package org.lqk.pigeon.proto;
 
 import org.lqk.pigeon.proto.Packet;
 

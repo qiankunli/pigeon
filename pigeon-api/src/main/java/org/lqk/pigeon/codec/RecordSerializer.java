@@ -6,12 +6,12 @@ import org.lqk.pigeon.proto.Record;
  * Created by bert on 2017/3/24.
  */
 public class RecordSerializer<T extends Record> {
-    private RecordEncoder<T> recordEncoder;
-    private RecordDecoder<T> recordDecoder;
+    protected RecordEncoder<T> recordEncoder;
+    protected RecordDecoder<T> recordDecoder;
 
-    public RecordSerializer(RecordEncoder<T> encoder, RecordDecoder<T> decoder) {
-        this.recordEncoder = encoder;
-        this.recordDecoder = decoder;
+    public RecordSerializer(RecordEncoder<T> recordEncoder, RecordDecoder<T> recordDecoder) {
+        this.recordEncoder = recordEncoder;
+        this.recordDecoder = recordDecoder;
     }
 
     public RecordEncoder<T> getRecordEncoder() {

@@ -1,6 +1,6 @@
 package org.lqk.pigeon.client;
 
-import org.lqk.pigeon.codec.RecordSerializer;
+import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.proto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,16 +19,13 @@ public class ClientCnxn {
 
     private int port;
 
-    private RecordSerializer recordSerializer;
-
-
     private static Logger log = LoggerFactory.getLogger(ClientCnxn.class);
 
 
-    public ClientCnxn(String ip, int port, RecordSerializer recordSerializer) {
+    public ClientCnxn(String ip, int port, ClientRecordSerializer clientRecordSerializer) {
         this.ip = ip;
         this.port = port;
-        clientCnxnSocket = new ClientCnxnSocketNetty(recordSerializer);
+        clientCnxnSocket = new ClientCnxnSocketNetty(clientRecordSerializer);
     }
 
     public void start() throws IOException, InterruptedException {
