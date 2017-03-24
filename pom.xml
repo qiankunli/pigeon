@@ -9,6 +9,7 @@
         <module>pigeon-client</module>
         <module>pigeon-common</module>
         <module>pigeon-server</module>
+        <module>pigeon-api</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -30,28 +31,49 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+
+
+
+            <!-- slf4j -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+
+            <!-- pigeon -->
+            <dependency>
+                <groupId>org.lqk</groupId>
+                <artifactId>pigeon-api</artifactId>
+                <version>${pigeon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.lqk</groupId>
+                <artifactId>pigeon-common</artifactId>
+                <version>${pigeon.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 </project>

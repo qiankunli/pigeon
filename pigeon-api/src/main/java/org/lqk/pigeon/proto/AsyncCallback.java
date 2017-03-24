@@ -1,4 +1,4 @@
-package org.lqk.pigeon.common.proto;
+package org.lqk.pigeon.proto;
 
 /**
  * Created by bert on 2017/3/19.

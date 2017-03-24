@@ -4,7 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.DecoderException;
-import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.codec.RecordDecoder;
+import org.lqk.pigeon.proto.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,13 @@ import java.util.List;
  * Created by bert on 16/9/7.
  */
 public class PacketDecoder extends ByteToMessageDecoder {
+
+    private RecordDecoder recordDecoder;
+
+    public PacketDecoder(RecordDecoder recordDecoder) {
+        this.recordDecoder = recordDecoder;
+    }
+
     private static Logger log = LoggerFactory.getLogger(PacketDecoder.class);
 
     @Override
@@ -52,12 +60,12 @@ public class PacketDecoder extends ByteToMessageDecoder {
         buf.writeBytes(in, frameSize);
         try {
             Packet packet = new Packet();
-            packet.decode(buf);
+            packet.decode(buf, recordDecoder);
             out.add(packet);
-        }catch (Throwable e){
-            log.error(e.getMessage(),e);
+        } catch (Throwable e) {
+            log.error(e.getMessage(), e);
             throw new DecoderException("segment decoder decode failed.", e);
-        }finally {
+        } finally {
             buf.release();
         }
     }

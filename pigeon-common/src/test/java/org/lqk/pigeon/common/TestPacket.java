@@ -1,7 +1,7 @@
 package org.lqk.pigeon.common;
 
 import org.junit.Test;
-import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.proto.Packet;
 
 /**
  * Created by bert on 2017/3/19.

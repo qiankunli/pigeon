@@ -7,10 +7,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pigeon-common</artifactId>
+    <artifactId>pigeon-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>pigeon-common</name>
+    <name>pigeon-api</name>
     <url>http://maven.apache.org</url>
 
     <properties>
@@ -18,28 +18,9 @@
     </properties>
 
     <dependencies>
-
-        <!-- slf4j -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-        </dependency>
-
-
-
-
-
-        <dependency>
-            <groupId>org.lqk</groupId>
-            <artifactId>pigeon-api</artifactId>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
         </dependency>
 
     </dependencies>

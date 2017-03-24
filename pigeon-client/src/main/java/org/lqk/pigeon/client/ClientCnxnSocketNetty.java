@@ -7,10 +7,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.lqk.pigeon.codec.RecordDecoder;
+import org.lqk.pigeon.codec.RecordEncoder;
+import org.lqk.pigeon.codec.RecordSerializer;
 import org.lqk.pigeon.common.codec.PacketDecoder;
 import org.lqk.pigeon.common.codec.PacketEncoder;
-import org.lqk.pigeon.common.proto.Packet;
-import org.lqk.pigeon.common.proto.ReplyHeader;
+import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.proto.ReplyHeader;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,6 +40,10 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
      */
     final ConcurrentMap<Integer, Packet> callbackMap = new ConcurrentHashMap<Integer, Packet>(
             1000);
+
+    public ClientCnxnSocketNetty(RecordSerializer recordSerializer){
+        super(recordSerializer);
+    }
 
 
     @Override
@@ -72,6 +79,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
                 if(!future.isSuccess()){
                     ReplyHeader r = new ReplyHeader();
                     r.setErr(-1);
+                    p.setIsFinished(true);
                     p.setReplyHeader(r);
                 }
             }
@@ -88,8 +96,8 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
     private class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
         protected void initChannel(SocketChannel arg0) throws Exception {
-            arg0.pipeline().addLast(new PacketEncoder())
-                    .addLast(new PacketDecoder())
+            arg0.pipeline().addLast(new PacketEncoder(recordSerializer.getRecordEncoder()))
+                    .addLast(new PacketDecoder(recordSerializer.getRecordDecoder()))
                     .addLast(new PacketHandler());
         }
     }
@@ -101,6 +109,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
             Packet clientPacket = callbackMap.get(packet.getId());
             clientPacket.setReplyHeader(packet.getReplyHeader());
             clientPacket.setResponse(packet.getResponse());
+            clientPacket.setIsFinished(true);
         }
     }
 }

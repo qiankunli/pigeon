@@ -1,15 +1,17 @@
-package org.lqk.pigeon.common.proto;
+package org.lqk.pigeon.proto;
 
 import io.netty.buffer.ByteBuf;
-import org.lqk.pigeon.common.utils.SystemUtils;
+import org.lqk.pigeon.codec.RecordDecoder;
+import org.lqk.pigeon.codec.RecordEncoder;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by bert on 2017/3/19.
  */
-public class Packet implements Record{
+public class Packet {
     private int id;
+    private PacketType packetType;
     private RequestHeader requestHeader;
     private ReplyHeader replyHeader;
     private Record request;
@@ -19,7 +21,7 @@ public class Packet implements Record{
     private static final AtomicInteger ID = new AtomicInteger(0);
 
     public Packet() {
-        this.id =  ID.incrementAndGet();
+        this.id = ID.incrementAndGet();
     }
 
     public Packet(RequestHeader requestHeader, ReplyHeader replyHeader, Record request, Record response, AsyncCallback callback) {
@@ -83,13 +85,16 @@ public class Packet implements Record{
         this.callback = callback;
     }
 
-    @Override
-    public void encode(ByteBuf out) {
-
+    public void encode(ByteBuf out, RecordEncoder recordEncoder) {
+        out.writeInt(id);
+        requestHeader.encode(out);
+        recordEncoder.encode(request, out);
     }
 
-    @Override
-    public void decode(ByteBuf in) {
-
+    public void decode(ByteBuf in, RecordDecoder recordDecoder) {
+        this.id = in.readInt();
+        this.replyHeader = new ReplyHeader();
+        replyHeader.decode(in);
+        this.response = recordDecoder.decode(in);
     }
 }

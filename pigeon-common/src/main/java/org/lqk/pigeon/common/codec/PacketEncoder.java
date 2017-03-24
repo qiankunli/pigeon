@@ -5,16 +5,23 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
-import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.codec.RecordDecoder;
+import org.lqk.pigeon.codec.RecordEncoder;
+import org.lqk.pigeon.proto.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 
 /**
  * Created by bert on 16/9/7.
  */
 public class PacketEncoder extends MessageToByteEncoder<Packet> {
+
+    private RecordEncoder recordEncoder;
+
+    public PacketEncoder(RecordEncoder recordEncoder) {
+        this.recordEncoder = recordEncoder;
+    }
 
     private static Logger log = LoggerFactory.getLogger(PacketEncoder.class);
 
@@ -25,7 +32,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
             /*
                 先将数据写入到buf中
              */
-            packet.encode(buf);
+            packet.encode(buf, recordEncoder);
 
             /*
                 将buf中的数据写入out中 frameSize + frameData

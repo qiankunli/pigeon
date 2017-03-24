@@ -6,6 +6,14 @@ package org.lqk.pigeon.common;
 public class PigeonException extends Exception{
     private int err;
 
+    public PigeonException(String message) {
+        super(message);
+    }
+
+    public PigeonException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public PigeonException(int err) {
         this.err = err;
     }

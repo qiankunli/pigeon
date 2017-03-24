@@ -1,16 +1,21 @@
 package org.lqk.pigeon.client;
 
-import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.codec.RecordSerializer;
+import org.lqk.pigeon.proto.Packet;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Created by bert on 2017/3/19.
  */
 public abstract class ClientCnxnSocket {
+
+    protected RecordSerializer recordSerializer;
+
+    public ClientCnxnSocket(RecordSerializer recordSerializer) {
+        this.recordSerializer = recordSerializer;
+    }
 
     abstract boolean isConnected();
 

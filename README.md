@@ -10,3 +10,14 @@
 2. 支持callback
 3. 支持future
 4. 支持心跳包,并以此更新客户端的状态
+
+
+## 通用的数据传输碰到的问题
+
+如果是要支持一个通用的数据传送，一个比较大的问题是，你无法预设协议，那么底层传送Packet的协议就只能是
+
+`|id|requestHeader|requestBody|` 和 `|id|replyHeader|responseBody|`
+
+requestBody 和 responseBody 就只能是二进制了。
+
+也就是说，要么传入序列化信息，要么弄一个统一的方式，否则Packet无法自己完成序列化。

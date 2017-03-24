@@ -1,9 +1,15 @@
 package org.lqk.pigeon.client;
 
+import org.lqk.pigeon.codec.RecordSerializer;
 import org.lqk.pigeon.common.PigeonException;
-import org.lqk.pigeon.common.proto.Record;
-import org.lqk.pigeon.common.proto.ReplyHeader;
-import org.lqk.pigeon.common.proto.RequestHeader;
+import org.lqk.pigeon.proto.Record;
+import org.lqk.pigeon.proto.SerializableRecord;
+import org.lqk.pigeon.proto.ReplyHeader;
+import org.lqk.pigeon.proto.RequestHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 
 /**
@@ -12,11 +18,19 @@ import org.lqk.pigeon.common.proto.RequestHeader;
 public class PigeonClient {
     private ClientCnxn clientCnxn;
 
-    public Record send(Record request) throws InterruptedException, PigeonException {
+    private static Logger log = LoggerFactory.getLogger(PigeonClient.class);
 
+    public PigeonClient(String ip, int port, RecordSerializer recordSerializer) {
+        clientCnxn = new ClientCnxn(ip, port, recordSerializer);
+    }
+
+    public void start() throws IOException, InterruptedException {
+        clientCnxn.start();
+    }
+
+    public void transport(Record request,Record response) throws Exception {
 
         RequestHeader requestHeader = new RequestHeader();
-        Record response = null;
 
         ReplyHeader r = clientCnxn.submitRequest(requestHeader, request, response);
 
@@ -24,6 +38,9 @@ public class PigeonClient {
             throw new PigeonException(r.getErr());
         }
 
-        return response;
+    }
+
+    public void close() {
+        clientCnxn.close();
     }
 }

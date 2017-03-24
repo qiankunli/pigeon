@@ -1,11 +1,11 @@
-package org.lqk.pigeon.common.proto;
+package org.lqk.pigeon.proto;
 
 import io.netty.buffer.ByteBuf;
 
 /**
  * Created by bert on 2017/3/19.
  */
-public class RequestHeader implements Record{
+public class RequestHeader implements SerializableRecord {
     public void encode(ByteBuf out) {
 
     }
