@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.demo.*;
-import org.lqk.pigeon.proto.Packet;
 import org.lqk.pigeon.proto.RequestHeader;
 
 import java.io.IOException;
@@ -34,9 +33,7 @@ public class TestPigeonClient {
         request.setData("hello");
 
         RequestHeader requestHeader = new RequestHeader();
-        Packet packet = pigeonClient.submit(requestHeader, request);
-
-        StringRecord response = (StringRecord) packet.getResponse();
+        StringRecord response = (StringRecord)pigeonClient.submit(requestHeader, request);
         System.out.println(response.getData());
     }
 }

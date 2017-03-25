@@ -28,7 +28,7 @@ public class PigeonClient {
         clientCnxn.start();
     }
 
-    public Packet submit(RequestHeader requestHeader, Record request) throws Exception {
+    public Record submit(RequestHeader requestHeader, Record request) throws Exception {
 
         Packet packet = clientCnxn.submitRequest(requestHeader, request);
         ReplyHeader r = packet.getReplyHeader();
@@ -36,7 +36,7 @@ public class PigeonClient {
             throw new PigeonException(r.getErr());
         }
 
-        return packet;
+        return packet.getResponse();
 
     }
 
