@@ -6,8 +6,10 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.lqk.pigeon.codec.ServerRecordSerializer;
-import org.lqk.pigeon.common.PigeonException;
+import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.common.codec.*;
 import org.lqk.pigeon.proto.Packet;
 import org.lqk.pigeon.proto.PacketHandler;
@@ -49,7 +51,7 @@ public class PigeonServer {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline channelPipeline = ch.pipeline();
-                channelPipeline.addLast(new RequestPacketEncoder(serverRecordSerializer.getRecordEncoder()))
+                channelPipeline.addLast(new ResponsePacketEncoder(serverRecordSerializer.getRecordEncoder()))
                         .addLast(new RequestPacketDecoder(serverRecordSerializer.getRecordDecoder()))
                         .addLast(new NettyServerChannelHandler(packetHandler));
             }
@@ -86,7 +88,16 @@ public class PigeonServer {
             ctx.executor().execute(new Runnable() {
                 public void run() {
                     Packet re = packetHandler.handle(packet);
-                    ctx.writeAndFlush(re);
+                    log.debug("handle packet complete,write it ,id {}", packet.getId());
+                    ctx.writeAndFlush(re).addListener(new GenericFutureListener<Future<? super Void>>() {
+                        @Override
+                        public void operationComplete(Future<? super Void> future) throws Exception {
+                            if (!future.isSuccess()) {
+                                Throwable cause = future.cause();
+                                log.error(cause.getMessage(), cause);
+                            }
+                        }
+                    });
                 }
             });
         }

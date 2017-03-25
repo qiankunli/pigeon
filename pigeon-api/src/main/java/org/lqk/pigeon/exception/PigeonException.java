@@ -1,4 +1,6 @@
-package org.lqk.pigeon.common;
+package org.lqk.pigeon.exception;
+
+import org.slf4j.helpers.MessageFormatter;
 
 /**
  * Created by bert on 2017/3/19.
@@ -8,6 +10,10 @@ public class PigeonException extends Exception{
 
     public PigeonException(String message) {
         super(message);
+    }
+
+    public PigeonException(String format, Object... arguments) {
+        super(MessageFormatter.arrayFormat(format, arguments).getMessage());
     }
 
     public PigeonException(String message, Throwable cause) {

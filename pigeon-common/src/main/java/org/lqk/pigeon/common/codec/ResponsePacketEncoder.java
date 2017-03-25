@@ -2,6 +2,7 @@ package org.lqk.pigeon.common.codec;
 
 import io.netty.buffer.ByteBuf;
 import org.lqk.pigeon.codec.RecordEncoder;
+import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.proto.Packet;
 
 /**
@@ -14,7 +15,7 @@ public class ResponsePacketEncoder extends PacketEncoder {
     }
 
     @Override
-    void encode(Packet packet, ByteBuf out) {
+    void encode(Packet packet, ByteBuf out) throws PigeonException {
         packet.encodeResponse(out, recordEncoder);
     }
 }

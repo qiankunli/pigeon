@@ -1,7 +1,8 @@
 package org.lqk.pigeon.client;
 
 import org.lqk.pigeon.codec.ClientRecordSerializer;
-import org.lqk.pigeon.common.PigeonException;
+import org.lqk.pigeon.exception.PigeonException;
+import org.lqk.pigeon.proto.Packet;
 import org.lqk.pigeon.proto.Record;
 import org.lqk.pigeon.proto.ReplyHeader;
 import org.lqk.pigeon.proto.RequestHeader;
@@ -27,15 +28,15 @@ public class PigeonClient {
         clientCnxn.start();
     }
 
-    public void transport(Record request,Record response) throws Exception {
+    public Packet submit(RequestHeader requestHeader, Record request) throws Exception {
 
-        RequestHeader requestHeader = new RequestHeader();
-
-        ReplyHeader r = clientCnxn.submitRequest(requestHeader, request, response);
-
+        Packet packet = clientCnxn.submitRequest(requestHeader, request);
+        ReplyHeader r = packet.getReplyHeader();
         if (r.getErr() != 0) {
             throw new PigeonException(r.getErr());
         }
+
+        return packet;
 
     }
 

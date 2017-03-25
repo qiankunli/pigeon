@@ -1,9 +1,11 @@
 package org.lqk.pigeon.common.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.DecoderException;
+import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.RecordDecoder;
 import org.lqk.pigeon.proto.Packet;
 import org.slf4j.Logger;
@@ -36,7 +38,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
         }
         in.markReaderIndex();
         int frameSize = in.readInt();
-        if (frameSize >= 4194304) {
+        if (frameSize >= Constant.MAX_PACKET_SIZE) {
             log.error("frame size {} is bigger than 4MB.", frameSize);
             throw new DecoderException("frame size is bigger than 4MB.");
         }
@@ -59,6 +61,7 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
         ByteBuf buf = ctx.alloc().heapBuffer();
         buf.writeBytes(in, frameSize);
         try {
+            log.debug("hex dump {}", ByteBufUtil.hexDump(buf));
             Packet packet = new Packet();
             decode(packet, buf);
             out.add(packet);
@@ -70,13 +73,14 @@ public abstract class PacketDecoder extends ByteToMessageDecoder {
         }
     }
 
+
     abstract void decode(Packet packet, ByteBuf in);
 
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
-        log.warn("decode segment message error,close connection");
+        log.warn("decode segment message error,close connection", cause);
         /*
             当发现解析异常时,直接关闭连接
          */

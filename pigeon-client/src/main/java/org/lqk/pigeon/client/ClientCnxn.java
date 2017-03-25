@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bert on 2017/3/19.
@@ -32,17 +33,17 @@ public class ClientCnxn {
         clientCnxnSocket.connect(new InetSocketAddress(ip, port));
     }
 
-    ReplyHeader submitRequest(RequestHeader requestHeader, Record request, Record response) throws InterruptedException, IOException {
+    Packet submitRequest(RequestHeader requestHeader, Record request) throws InterruptedException, IOException {
         log.debug("is connected {}", clientCnxnSocket.isConnected());
         ReplyHeader r = new ReplyHeader();
-        Packet packet = new Packet(requestHeader, r, request, response, null);
+        Packet packet = new Packet(requestHeader, r, request, null, null);
         clientCnxnSocket.sendPacket(packet);
         synchronized (packet) {
             while (!packet.getIsFinished()) {
                 packet.wait();
             }
         }
-        return r;
+        return packet;
 
     }
 

@@ -1,12 +1,14 @@
 package org.lqk.pigeon.common.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.ReferenceCountUtil;
-import org.lqk.pigeon.codec.RecordDecoder;
+import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.RecordEncoder;
+import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.proto.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,18 @@ public abstract class PacketEncoder extends MessageToByteEncoder<Packet> {
              */
             encode(packet, buf);
 
+            int len = buf.readableBytes();
+
+            if (len > Constant.MAX_PACKET_SIZE) {
+                throw new EncoderException("packet size is bigger than " + Constant.MAX_PACKET_SIZE);
+            }
+
+            log.debug("hex dump {}", ByteBufUtil.hexDump(buf));
+
             /*
                 将buf中的数据写入out中 frameSize + frameData
              */
-            out.writeInt(buf.readableBytes()).writeBytes(buf);
+            out.writeInt(len).writeBytes(buf);
         } catch (Throwable e) {
             throw new EncoderException("encode segment message failed", e);
         } finally {
@@ -45,5 +55,16 @@ public abstract class PacketEncoder extends MessageToByteEncoder<Packet> {
         }
     }
 
-    abstract void encode(Packet packet, ByteBuf out);
+    abstract void encode(Packet packet, ByteBuf out) throws PigeonException;
+
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+        log.warn("encode segment message error,close connection", cause);
+        /*
+            当发现解析异常时,直接关闭连接
+         */
+        ctx.close();
+    }
 }

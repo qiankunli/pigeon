@@ -3,13 +3,12 @@ package org.lqk.pigeon.server;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.lqk.pigeon.common.PigeonException;
-import org.lqk.pigeon.common.demo.DemoRequest;
-import org.lqk.pigeon.common.demo.DemoResponse;
-import org.lqk.pigeon.common.demo.StringRecordDecoder;
-import org.lqk.pigeon.common.demo.StringRecordEncoder;
+import org.lqk.pigeon.codec.ServerRecordSerializer;
+import org.lqk.pigeon.exception.PigeonException;
+import org.lqk.pigeon.common.demo.*;
 import org.lqk.pigeon.proto.Packet;
 import org.lqk.pigeon.proto.PacketHandler;
+import org.lqk.pigeon.proto.ReplyHeader;
 
 
 /**
@@ -23,14 +22,18 @@ public class TestPigeonServer {
     public void before() throws PigeonException {
         pigeonServer = new PigeonServer(8080, new PacketHandler() {
             public Packet handle(Packet packet) {
-                DemoRequest request = (DemoRequest) packet.getRequest();
-                System.out.println(request.getData());
-                DemoResponse response = new DemoResponse();
-                request.setData("hello world");
+                System.out.println("id ==> " + packet.getId());
+                StringRecord request =  (StringRecord) packet.getRequest();
+                System.out.println("data ==> " + request.getData());
+                StringRecord response = new StringRecord();
+                response.setData("hello world");
                 packet.setResponse(response);
+                ReplyHeader replyHeader = new ReplyHeader();
+                replyHeader.setErr(0);
+                packet.setReplyHeader(replyHeader);
                 return packet;
             }
-        },new StringRecordEncoder(),new StringRecordDecoder());
+        },new ServerRecordSerializer(new StringRecordEncoder(),new StringRecordDecoder()));
         pigeonServer.open();
     }
 

@@ -3,6 +3,7 @@ package org.lqk.pigeon.proto;
 import io.netty.buffer.ByteBuf;
 import org.lqk.pigeon.codec.RecordDecoder;
 import org.lqk.pigeon.codec.RecordEncoder;
+import org.lqk.pigeon.exception.PigeonException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -88,15 +89,27 @@ public class Packet {
         this.callback = callback;
     }
 
-    public void encodeRequest(ByteBuf out, RecordEncoder requestEncoder) {
+    public void encodeRequest(ByteBuf out, RecordEncoder requestEncoder) throws PigeonException {
         out.writeInt(id);
+        if(null == requestHeader){
+            throw new PigeonException("requestHeader can not be null");
+        }
         requestHeader.encode(out);
+        if(null == request){
+            throw new PigeonException("request can not be null");
+        }
         requestEncoder.encode(request, out);
     }
 
-    public void encodeResponse(ByteBuf out, RecordEncoder responseEncoder) {
+    public void encodeResponse(ByteBuf out, RecordEncoder responseEncoder) throws PigeonException {
         out.writeInt(id);
+        if(null == replyHeader){
+            throw new PigeonException("replyHeader can not be null");
+        }
         replyHeader.encode(out);
+        if(null == response){
+            throw new PigeonException("response can not be null");
+        }
         responseEncoder.encode(response, out);
     }
 

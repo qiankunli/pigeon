@@ -11,7 +11,8 @@ import java.nio.charset.Charset;
 public class StringRecordEncoder implements RecordEncoder<StringRecord> {
     @Override
     public void encode(StringRecord record, ByteBuf out) {
-        byte[] b = record.getData().getBytes(Charset.forName("UTF-8"));
+        String data = record.getData();
+        byte[] b = data.getBytes(Charset.forName("UTF-8"));
         out.writeInt(b.length);
         out.writeBytes(b);
     }

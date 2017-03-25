@@ -11,6 +11,7 @@ import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.codec.RequestPacketEncoder;
 import org.lqk.pigeon.common.codec.ResponsePacketDecoder;
 import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.proto.Record;
 import org.lqk.pigeon.proto.ReplyHeader;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     final ConcurrentMap<Integer, Packet> callbackMap = new ConcurrentHashMap<Integer, Packet>(
             1000);
 
-    public ClientCnxnSocketNetty(ClientRecordSerializer clientRecordSerializer){
+    public ClientCnxnSocketNetty(ClientRecordSerializer clientRecordSerializer) {
         super(clientRecordSerializer);
     }
 
@@ -70,11 +71,11 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     @Override
     void sendPacket(final Packet p) throws IOException {
         callbackMap.put(p.getId(), p);
-        channel.writeAndFlush(p).addListener(new GenericFutureListener(){
+        channel.writeAndFlush(p).addListener(new GenericFutureListener() {
 
             @Override
             public void operationComplete(Future future) throws Exception {
-                if(!future.isSuccess()){
+                if (!future.isSuccess()) {
                     ReplyHeader r = new ReplyHeader();
                     r.setErr(-1);
                     p.setIsFinished(true);
@@ -108,6 +109,9 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
             clientPacket.setReplyHeader(packet.getReplyHeader());
             clientPacket.setResponse(packet.getResponse());
             clientPacket.setIsFinished(true);
+            synchronized (clientPacket) {
+                clientPacket.notifyAll();
+            }
         }
     }
 }

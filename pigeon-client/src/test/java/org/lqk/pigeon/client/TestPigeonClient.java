@@ -3,11 +3,10 @@ package org.lqk.pigeon.client;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.lqk.pigeon.codec.RecordSerializer;
-import org.lqk.pigeon.common.demo.DemoRequest;
-import org.lqk.pigeon.common.demo.DemoResponse;
-import org.lqk.pigeon.common.demo.StringRecordDecoder;
-import org.lqk.pigeon.common.demo.StringRecordEncoder;
+import org.lqk.pigeon.codec.ClientRecordSerializer;
+import org.lqk.pigeon.common.demo.*;
+import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.proto.RequestHeader;
 
 import java.io.IOException;
 
@@ -19,7 +18,8 @@ public class TestPigeonClient {
 
     @Before
     public void before() throws IOException, InterruptedException {
-        pigeonClient = new PigeonClient("127.0.0.1", 8080, new RecordSerializer(new StringRecordEncoder(), new StringRecordDecoder()));
+        pigeonClient = new PigeonClient("127.0.0.1", 8080, new ClientRecordSerializer(new StringRecordEncoder(),
+                new StringRecordDecoder()));
         pigeonClient.start();
     }
 
@@ -30,10 +30,13 @@ public class TestPigeonClient {
 
     @Test
     public void test() throws Exception {
-        DemoRequest demoRequest = new DemoRequest();
-        demoRequest.setData("hello");
-        DemoResponse demoResponse = new DemoResponse();
-        pigeonClient.transport(demoRequest, demoResponse);
-        System.out.println(demoResponse.getData());
+        StringRecord request = new StringRecord();
+        request.setData("hello");
+
+        RequestHeader requestHeader = new RequestHeader();
+        Packet packet = pigeonClient.submit(requestHeader, request);
+
+        StringRecord response = (StringRecord) packet.getResponse();
+        System.out.println(response.getData());
     }
 }
