@@ -6,10 +6,11 @@
 
 计划
 
-1. 基本的packet发送与接收
+1. 基本的packet发送与接收（已完成）
 2. 支持callback
 3. 支持future
 4. 支持心跳包,并以此更新客户端的状态
+5. 配置数据规范化，即一个框架的运行需要大量配置，比如一个server socket的backlog、一次传输支持的最大byte size等
 
 
 
