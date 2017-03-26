@@ -1,9 +1,10 @@
-package org.lqk.pigeon.proto;
+package org.lqk.pigeon.common.proto;
 
 import io.netty.buffer.ByteBuf;
 import org.lqk.pigeon.codec.RecordDecoder;
 import org.lqk.pigeon.codec.RecordEncoder;
 import org.lqk.pigeon.exception.PigeonException;
+import org.lqk.pigeon.proto.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,8 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * requestHeader,replyHeader,request,response 则可以根据框架需要自定义扩展
  */
 public class Packet {
+    private PacketType packetType;  /* 必须优先被序列化和反序列化，因为系统还会发送心跳包*/
     private int id;
-    private PacketType packetType;
     private RequestHeader requestHeader;
     private ReplyHeader replyHeader;
     private Record request;
@@ -81,6 +82,14 @@ public class Packet {
         return id;
     }
 
+    public PacketType getPacketType() {
+        return packetType;
+    }
+
+    public void setPacketType(PacketType packetType) {
+        this.packetType = packetType;
+    }
+
     public AsyncCallback getCallback() {
         return callback;
     }
@@ -90,30 +99,33 @@ public class Packet {
     }
 
     public void encodeRequest(ByteBuf out, RecordEncoder requestEncoder) throws PigeonException {
+        out.writeInt(PacketType.cs.getValue());
         out.writeInt(id);
-        if(null == requestHeader){
+        if (null == requestHeader) {
             throw new PigeonException("requestHeader can not be null");
         }
         requestHeader.encode(out);
-        if(null == request){
+        if (null == request) {
             throw new PigeonException("request can not be null");
         }
         requestEncoder.encode(request, out);
     }
 
     public void encodeResponse(ByteBuf out, RecordEncoder responseEncoder) throws PigeonException {
+        out.writeInt(PacketType.ss.getValue());
         out.writeInt(id);
-        if(null == replyHeader){
+        if (null == replyHeader) {
             throw new PigeonException("replyHeader can not be null");
         }
         replyHeader.encode(out);
-        if(null == response){
+        if (null == response) {
             throw new PigeonException("response can not be null");
         }
         responseEncoder.encode(response, out);
     }
 
     public void decodeResponse(ByteBuf in, RecordDecoder responseDecoder) {
+        this.packetType = PacketType.valueOf(in.readInt());
         this.id = in.readInt();
         this.replyHeader = new ReplyHeader();
         replyHeader.decode(in);
@@ -121,6 +133,7 @@ public class Packet {
     }
 
     public void decodeRequest(ByteBuf in, RecordDecoder requestDecoder) {
+        this.packetType = PacketType.valueOf(in.readInt());
         this.id = in.readInt();
         this.requestHeader = new RequestHeader();
         requestHeader.decode(in);

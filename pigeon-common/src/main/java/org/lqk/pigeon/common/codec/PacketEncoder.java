@@ -9,7 +9,7 @@ import io.netty.util.ReferenceCountUtil;
 import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.RecordEncoder;
 import org.lqk.pigeon.exception.PigeonException;
-import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.common.proto.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -28,12 +28,18 @@ public class TestPigeonClient {
     }
 
     @Test
-    public void test() throws Exception {
+    public void testSubmit() throws Exception {
         StringRecord request = new StringRecord();
         request.setData("hello");
 
         RequestHeader requestHeader = new RequestHeader();
         StringRecord response = (StringRecord)pigeonClient.submit(requestHeader, request);
         System.out.println(response.getData());
+    }
+    @Test
+    public void testPing() throws InterruptedException {
+        while(true){
+            Thread.sleep(1000);
+        }
     }
 }

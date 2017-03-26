@@ -2,7 +2,7 @@ package org.lqk.pigeon.client;
 
 import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.exception.PigeonException;
-import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.common.proto.Packet;
 import org.lqk.pigeon.proto.Record;
 import org.lqk.pigeon.proto.ReplyHeader;
 import org.lqk.pigeon.proto.RequestHeader;

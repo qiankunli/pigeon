@@ -6,13 +6,18 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.ServerRecordSerializer;
+import org.lqk.pigeon.common.handler.ClientHeartBeatHandler;
+import org.lqk.pigeon.server.handler.ServerHeartBeatHandler;
 import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.common.codec.*;
-import org.lqk.pigeon.proto.Packet;
-import org.lqk.pigeon.proto.PacketHandler;
+import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.common.proto.PacketHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +57,12 @@ public class PigeonServer {
             protected void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline channelPipeline = ch.pipeline();
                 channelPipeline.addLast(new ResponsePacketEncoder(serverRecordSerializer.getRecordEncoder()))
+                        /*
+                            客户端至少隔5s发一次消息，那么服务端极端情况下，至少10会收一次消息
+                         */
+                        .addLast(new IdleStateHandler(10, 0, 0))
+                        .addLast(new LengthFieldBasedFrameDecoder(Constant.MAX_PACKET_SIZE,0,4,0,4))
+                        .addLast(new ServerHeartBeatHandler())
                         .addLast(new RequestPacketDecoder(serverRecordSerializer.getRecordDecoder()))
                         .addLast(new NettyServerChannelHandler(packetHandler));
             }

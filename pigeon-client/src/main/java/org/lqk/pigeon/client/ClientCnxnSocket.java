@@ -1,7 +1,7 @@
 package org.lqk.pigeon.client;
 
 import org.lqk.pigeon.codec.ClientRecordSerializer;
-import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.common.proto.Packet;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -13,13 +13,18 @@ public abstract class ClientCnxnSocket {
 
     protected ClientRecordSerializer clientRecordSerializer;
 
-    public ClientCnxnSocket(ClientRecordSerializer clientRecordSerializer) {
+    protected String ip;
+    protected int port;
+
+    public ClientCnxnSocket(String ip,int port,ClientRecordSerializer clientRecordSerializer) {
         this.clientRecordSerializer = clientRecordSerializer;
+        this.ip = ip;
+        this.port = port;
     }
 
     abstract boolean isConnected();
 
-    abstract void connect(InetSocketAddress addr) throws IOException, InterruptedException;
+    abstract void connect() throws IOException, InterruptedException;
 
     abstract void sendPacket(Packet p) throws IOException;
 

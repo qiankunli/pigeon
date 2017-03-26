@@ -3,7 +3,7 @@ package org.lqk.pigeon.common.codec;
 import io.netty.buffer.ByteBuf;
 import org.lqk.pigeon.codec.RecordEncoder;
 import org.lqk.pigeon.exception.PigeonException;
-import org.lqk.pigeon.proto.Packet;
+import org.lqk.pigeon.common.proto.Packet;
 
 /**
  * Created by bert on 2017/3/24.

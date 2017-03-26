@@ -1,6 +1,5 @@
-package org.lqk.pigeon.proto;
+package org.lqk.pigeon.common.proto;
 
-import org.lqk.pigeon.proto.Packet;
 
 /**
  * Created by bert on 2017/3/22.

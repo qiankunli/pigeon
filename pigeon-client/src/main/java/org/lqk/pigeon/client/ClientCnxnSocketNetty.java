@@ -5,13 +5,16 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.codec.RequestPacketEncoder;
 import org.lqk.pigeon.common.codec.ResponsePacketDecoder;
-import org.lqk.pigeon.proto.Packet;
-import org.lqk.pigeon.proto.Record;
+import org.lqk.pigeon.client.handler.ClientHeartBeatHandler;
+import org.lqk.pigeon.common.proto.Packet;
 import org.lqk.pigeon.proto.ReplyHeader;
 
 import java.io.IOException;
@@ -40,25 +43,25 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     final ConcurrentMap<Integer, Packet> callbackMap = new ConcurrentHashMap<Integer, Packet>(
             1000);
 
-    public ClientCnxnSocketNetty(ClientRecordSerializer clientRecordSerializer) {
-        super(clientRecordSerializer);
+    public ClientCnxnSocketNetty(String ip, int port, ClientRecordSerializer clientRecordSerializer) {
+        super(ip,port,clientRecordSerializer);
     }
 
 
     @Override
-    boolean isConnected() {
+    public boolean isConnected() {
         return channel != null && channel.isActive();
     }
 
     @Override
-    void connect(InetSocketAddress addr) throws IOException, InterruptedException {
+    public void connect() throws IOException, InterruptedException {
 
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ClientChannelInitializer());
 
 
-        bootstrap.connect(addr).sync().addListener(new ChannelFutureListener() {
+        bootstrap.connect(new InetSocketAddress(ip, port)).sync().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 channel = future.channel();
@@ -69,7 +72,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     }
 
     @Override
-    void sendPacket(final Packet p) throws IOException {
+    public void sendPacket(final Packet p) throws IOException {
         callbackMap.put(p.getId(), p);
         channel.writeAndFlush(p).addListener(new GenericFutureListener() {
 
@@ -86,7 +89,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     }
 
     @Override
-    void close() {
+    public void close() {
         eventLoopGroup.shutdownGracefully();
 
         // todo 是否删除pendingQueue
@@ -96,6 +99,15 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     private class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
         protected void initChannel(SocketChannel arg0) throws Exception {
             arg0.pipeline().addLast(new RequestPacketEncoder(clientRecordSerializer.getRecordEncoder()))
+                    /*
+                            客户端读写idle超过5秒发送ping请求
+                         */
+                    .addLast(new IdleStateHandler(0, 0, 5))
+                    /*
+                        LengthFieldBasedFrameDecoder会去掉长度部分，剩下的数据部分buf交给PacketDecoder处理
+                     */
+                    .addLast(new LengthFieldBasedFrameDecoder(Constant.MAX_PACKET_SIZE, 0, 4, 0, 4))
+                    .addLast(new ClientHeartBeatHandler(ClientCnxnSocketNetty.this))
                     .addLast(new ResponsePacketDecoder(clientRecordSerializer.getRecordDecoder()))
                     .addLast(new PacketHandler());
         }

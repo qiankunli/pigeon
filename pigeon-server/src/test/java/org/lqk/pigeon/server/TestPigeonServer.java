@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.lqk.pigeon.codec.ServerRecordSerializer;
 import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.common.demo.*;
-import org.lqk.pigeon.proto.Packet;
-import org.lqk.pigeon.proto.PacketHandler;
+import org.lqk.pigeon.common.proto.Packet;
+import org.lqk.pigeon.common.proto.PacketHandler;
 import org.lqk.pigeon.proto.ReplyHeader;
 
 
