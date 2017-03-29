@@ -21,7 +21,6 @@ public class Packet {
     private ReplyHeader replyHeader;
     private Record request;
     private Record response;
-    private boolean finished;
     private AsyncCallback callback;
     private static final AtomicInteger ID = new AtomicInteger(0);
 
@@ -68,14 +67,6 @@ public class Packet {
 
     public void setResponse(Record response) {
         this.response = response;
-    }
-
-    public boolean getIsFinished() {
-        return finished;
-    }
-
-    public void setIsFinished(boolean finished) {
-        this.finished = finished;
     }
 
     public int getId() {

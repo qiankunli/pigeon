@@ -1,13 +1,14 @@
 package org.lqk.pigeon.client;
 
+import com.google.common.util.concurrent.SettableFuture;
 import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.proto.Packet;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 /**
  * Created by bert on 2017/3/19.
+ * packet request ==> packet response
  */
 public abstract class ClientCnxnSocket {
 
@@ -26,7 +27,7 @@ public abstract class ClientCnxnSocket {
 
     abstract void connect() throws IOException, InterruptedException;
 
-    abstract void sendPacket(Packet p) throws IOException;
+    abstract SettableFuture<Packet> sendPacket(Packet p) throws IOException;
 
     abstract void close();
 }

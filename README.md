@@ -55,6 +55,14 @@ requestBody 和 responseBody 就只能是二进制了。
 也就是说，要么传入序列化信息，要么弄一个统一的方式，否则Packet无法自己完成序列化。
 
 
+
+||任务|数据model|
+|---|---|---|
+|上层|||
+|业务层||record|
+|transport层||packet|
+
+
 ## zk为什么只是读取数据流，然后自己解析model
 
 因为zk抽象的接口是
@@ -67,3 +75,9 @@ Response 是已经创建好传入的，而netty的一整套model编解码方案�
        返回的model已经在框架内创建好，按照java的语法，是无法回传的用户的的response的
        除非事先定义好转换接口。
        
+       
+## 状态管理
+
+如果一个client只有一个channel，那么client的状态和channel的状态是基本一致的，心跳也可以根据channel的状态来判断是否重连
+
+如果一个client有多个channel，那么client本身也要维护一个状态，心跳只能影响某个连接

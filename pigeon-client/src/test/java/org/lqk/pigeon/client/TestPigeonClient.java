@@ -33,7 +33,7 @@ public class TestPigeonClient {
         request.setData("hello");
 
         RequestHeader requestHeader = new RequestHeader();
-        StringRecord response = (StringRecord)pigeonClient.submit(requestHeader, request);
+        StringRecord response = (StringRecord)pigeonClient.send(requestHeader, request);
         System.out.println(response.getData());
     }
     @Test

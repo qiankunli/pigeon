@@ -1,5 +1,6 @@
 package org.lqk.pigeon.client;
 
+import com.google.common.util.concurrent.SettableFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -14,13 +15,18 @@ import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.codec.RequestPacketEncoder;
 import org.lqk.pigeon.common.codec.ResponsePacketDecoder;
 import org.lqk.pigeon.client.handler.ClientHeartBeatHandler;
+import org.lqk.pigeon.common.concurrent.EffectiveSettableFuture;
 import org.lqk.pigeon.common.proto.Packet;
 import org.lqk.pigeon.proto.ReplyHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bert on 2017/3/19.
@@ -31,7 +37,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
 
     Bootstrap bootstrap = new Bootstrap();
-    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(2);
+    EventLoopGroup eventLoopGroup = null;
     Channel channel = null;
 
     // todo 加一个逻辑，周期性移除callbackMap中已经无效的数据
@@ -40,11 +46,13 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
         因为packet的返回值是异步返回的，因此，要么packet保存isFinished的字段，然后上层轮询
         要么通过future封装下一下返回值
      */
-    final ConcurrentMap<Integer, Packet> callbackMap = new ConcurrentHashMap<Integer, Packet>(
+    protected ConcurrentMap<Integer, EffectiveSettableFuture> callbackMap = new ConcurrentHashMap<Integer, EffectiveSettableFuture>(
             1000);
 
+    private static Logger log = LoggerFactory.getLogger(ClientCnxnSocketNetty.class);
+
     public ClientCnxnSocketNetty(String ip, int port, ClientRecordSerializer clientRecordSerializer) {
-        super(ip,port,clientRecordSerializer);
+        super(ip, port, clientRecordSerializer);
     }
 
 
@@ -56,9 +64,13 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     @Override
     public void connect() throws IOException, InterruptedException {
 
+        eventLoopGroup = new NioEventLoopGroup(2);
+
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new ClientChannelInitializer());
+
+        eventLoopGroup.scheduleAtFixedRate(new TimeoutMonitorRunnable(), 30, 30, TimeUnit.SECONDS);
 
 
         bootstrap.connect(new InetSocketAddress(ip, port)).sync().addListener(new ChannelFutureListener() {
@@ -72,8 +84,9 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
     }
 
     @Override
-    public void sendPacket(final Packet p) throws IOException {
-        callbackMap.put(p.getId(), p);
+    public SettableFuture<Packet> sendPacket(final Packet p) throws IOException {
+        final EffectiveSettableFuture effectiveSettableFuture = new EffectiveSettableFuture(System.currentTimeMillis());
+        callbackMap.put(p.getId(), effectiveSettableFuture);
         channel.writeAndFlush(p).addListener(new GenericFutureListener() {
 
             @Override
@@ -81,20 +94,56 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
                 if (!future.isSuccess()) {
                     ReplyHeader r = new ReplyHeader();
                     r.setErr(-1);
-                    p.setIsFinished(true);
+                    effectiveSettableFuture.getSettableFuture().setException(future.cause());
                     p.setReplyHeader(r);
                 }
             }
         });
+        return effectiveSettableFuture.getSettableFuture();
     }
 
     @Override
     public void close() {
         eventLoopGroup.shutdownGracefully();
-
-        // todo 是否删除pendingQueue
     }
 
+
+    /**
+     * 回收超时的Future 30秒
+     */
+    class TimeoutMonitorRunnable implements Runnable {
+
+        private long timeoutThreshold;
+
+        public TimeoutMonitorRunnable() {
+            timeoutThreshold = 1000 * 30;
+        }
+
+        @Override
+        public void run() {
+            try {
+                long startTs = System.currentTimeMillis();
+                int size = callbackMap.size();
+                log.debug("recycle timeout future, size is {}", size);
+                for (Map.Entry<Integer, EffectiveSettableFuture> entry : callbackMap.entrySet()) {
+                    try {
+                        if (startTs - entry.getValue().getCreatedTs() > timeoutThreshold) {
+                            callbackMap.remove(entry.getKey());
+                            // TODO 改成setException 更好?
+                            entry.getValue().getSettableFuture().cancel(true);
+                        }
+                    } catch (Exception e) {
+                        log.error("clear timeout future error!", e);
+                    }
+                }
+                long stopTs = System.currentTimeMillis();
+                long use = stopTs - startTs;
+                log.debug("recycle {} timeout future total use {}ms", size, use);
+            } catch (Exception e) {
+                log.error("recycle timeout future error!", e);
+            }
+        }
+    }
 
     private class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
         protected void initChannel(SocketChannel arg0) throws Exception {
@@ -117,13 +166,8 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
-            Packet clientPacket = callbackMap.get(packet.getId());
-            clientPacket.setReplyHeader(packet.getReplyHeader());
-            clientPacket.setResponse(packet.getResponse());
-            clientPacket.setIsFinished(true);
-            synchronized (clientPacket) {
-                clientPacket.notifyAll();
-            }
+            EffectiveSettableFuture effectiveSettableFuture = callbackMap.get(packet.getId());
+            effectiveSettableFuture.getSettableFuture().set(packet);
         }
     }
 }
