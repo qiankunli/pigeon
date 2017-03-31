@@ -38,13 +38,20 @@ public class ClientCnxn {
     Future<Record> submitRequest(RequestHeader requestHeader, Record request) throws InterruptedException, IOException {
         log.debug("is connected {}", clientCnxnSocket.isConnected());
         ReplyHeader r = new ReplyHeader();
-        final Packet packet = new Packet(requestHeader, r, request, null, null);
+        Packet packet = new Packet(requestHeader, r, request, null, null);
         final SettableFuture<Packet> packetSettableFuture = clientCnxnSocket.sendPacket(packet);
         final SettableFuture<Record> recordSettableFuture = SettableFuture.create();
         packetSettableFuture.addListener(new Runnable() {
             @Override
             public void run() {
-                recordSettableFuture.set(packet.getResponse());
+                try {
+                    Packet responsePacket = packetSettableFuture.get();
+                    Record record = responsePacket.getResponse();
+                    log.debug("response id {},response {}", responsePacket.getId(), record.toString());
+                    recordSettableFuture.set(record);
+                }catch (Exception e){
+                    log.error(e.getMessage(),e);
+                }
             }
         }, executor);
         return recordSettableFuture;

@@ -17,12 +17,25 @@ public abstract class HeartBeatHandler extends SimpleChannelInboundHandler<ByteB
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
-        int packetType = buf.readInt();
+        /*
+            注意，这里只能是getInt，不能是readInt
+         */
+        int packetType = buf.getInt(0);
         if (PacketType.ping.getValue() == packetType) {
             sendPongMsg(ctx);
         } else if (PacketType.pong.getValue() == packetType) {
             log.debug("receive pong message from {}", ctx.channel().remoteAddress());
         } else {
+            /*
+                通过观察SimpleChannelInboundHandler中channelRead0调用的上下文可知
+                channelRead0执行后一定会尝试释放buf，但下一个handler也会在对buf执行完毕后释放buf，因为buf会被释放两次,所以为buf增加一个引用计数
+
+                HeartBeatHandler.channelRead0
+                nextHandler.channelRead0
+                nextHandler release buf
+                HeartBeatHandler release buf
+             */
+            buf.retain();
             ctx.fireChannelRead(buf);
         }
     }

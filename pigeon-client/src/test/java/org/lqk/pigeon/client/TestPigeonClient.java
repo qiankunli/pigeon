@@ -5,9 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.lqk.pigeon.codec.ClientRecordSerializer;
 import org.lqk.pigeon.common.demo.*;
+import org.lqk.pigeon.proto.Record;
 import org.lqk.pigeon.proto.RequestHeader;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
  * Created by bert on 2017/3/24.
@@ -33,12 +35,18 @@ public class TestPigeonClient {
         request.setData("hello");
 
         RequestHeader requestHeader = new RequestHeader();
-        StringRecord response = (StringRecord)pigeonClient.send(requestHeader, request);
+        Future<Record> recordFuture = pigeonClient.send(requestHeader, request);
+        StringRecord response = (StringRecord) recordFuture.get();
         System.out.println(response.getData());
+
+        while (true) {
+            Thread.sleep(1000);
+        }
     }
+
     @Test
     public void testPing() throws InterruptedException {
-        while(true){
+        while (true) {
             Thread.sleep(1000);
         }
     }

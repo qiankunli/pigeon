@@ -17,4 +17,9 @@ public class StringRecord implements Record {
     public void setData(String data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "StringRecord data : " + data;
+    }
 }

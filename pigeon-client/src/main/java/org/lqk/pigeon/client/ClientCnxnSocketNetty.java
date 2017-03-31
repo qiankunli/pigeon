@@ -53,6 +53,12 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
     public ClientCnxnSocketNetty(String ip, int port, ClientRecordSerializer clientRecordSerializer) {
         super(ip, port, clientRecordSerializer);
+        eventLoopGroup = new NioEventLoopGroup(2);
+        bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
+        bootstrap.option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(new ClientChannelInitializer());
+
+        eventLoopGroup.scheduleAtFixedRate(new TimeoutMonitorRunnable(), 30, 30, TimeUnit.SECONDS);
     }
 
 
@@ -63,14 +69,6 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
 
     @Override
     public void connect() throws IOException, InterruptedException {
-
-        eventLoopGroup = new NioEventLoopGroup(2);
-
-        bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class);
-        bootstrap.option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new ClientChannelInitializer());
-
-        eventLoopGroup.scheduleAtFixedRate(new TimeoutMonitorRunnable(), 30, 30, TimeUnit.SECONDS);
 
 
         bootstrap.connect(new InetSocketAddress(ip, port)).sync().addListener(new ChannelFutureListener() {
@@ -153,7 +151,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
                          */
                     .addLast(new IdleStateHandler(0, 0, 5))
                     /*
-                        LengthFieldBasedFrameDecoder会去掉长度部分，剩下的数据部分buf交给PacketDecoder处理
+                        LengthFieldBasedFrameDecoder会去掉长度部分
                      */
                     .addLast(new LengthFieldBasedFrameDecoder(Constant.MAX_PACKET_SIZE, 0, 4, 0, 4))
                     .addLast(new ClientHeartBeatHandler(ClientCnxnSocketNetty.this))
@@ -167,6 +165,7 @@ public class ClientCnxnSocketNetty extends ClientCnxnSocket {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
             EffectiveSettableFuture effectiveSettableFuture = callbackMap.get(packet.getId());
+            log.debug("response id {},response {}", packet.getId(), packet.getResponse().toString());
             effectiveSettableFuture.getSettableFuture().set(packet);
         }
     }

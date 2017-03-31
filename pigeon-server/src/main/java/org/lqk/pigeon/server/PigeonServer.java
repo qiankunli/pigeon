@@ -12,7 +12,6 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.lqk.pigeon.Constant;
 import org.lqk.pigeon.codec.ServerRecordSerializer;
-import org.lqk.pigeon.common.handler.ClientHeartBeatHandler;
 import org.lqk.pigeon.server.handler.ServerHeartBeatHandler;
 import org.lqk.pigeon.exception.PigeonException;
 import org.lqk.pigeon.common.codec.*;
@@ -61,7 +60,13 @@ public class PigeonServer {
                             客户端至少隔5s发一次消息，那么服务端极端情况下，至少10会收一次消息
                          */
                         .addLast(new IdleStateHandler(10, 0, 0))
+                        /*
+                            LengthFieldBasedFrameDecoder会去掉长度部分，将流拆成 packet 或 心跳包
+                         */
                         .addLast(new LengthFieldBasedFrameDecoder(Constant.MAX_PACKET_SIZE,0,4,0,4))
+                        /*
+                            心跳包必须在协议解析之前
+                         */
                         .addLast(new ServerHeartBeatHandler())
                         .addLast(new RequestPacketDecoder(serverRecordSerializer.getRecordDecoder()))
                         .addLast(new NettyServerChannelHandler(packetHandler));
